@@ -73,6 +73,7 @@ test_select_idx = np.random.choice(select_idx, size=(1,300)).tolist()[0]
 
 select_idx = list(filter(lambda x: x not in test_select_idx, select_idx))
 
+#计算词典、词频
 vocabList = list(getVocabList(df_train.iloc[select_idx], rmSignal+rmChinese))
 vocabCnt = getVocabCnt(df_train.iloc[select_idx], vocabList)
 
@@ -87,6 +88,7 @@ print(np.sum(vocabCnt))
 # In[10]:
 
 
+#可视化分析
 def plotTopFrequeceWord(vocabCnt, vocabList, topK=10):
     chVocab = sorted(vocabList, key=lambda x:vocabCnt[vocabList.index(x)])[-topK:]
     cntAllVocab = np.sum(vocabCnt)
@@ -136,9 +138,11 @@ def makeDataMat(data, vocabList):
             break
     return np.mat(data_mat)
 
+#构建训练集矩阵
 train_x = makeDataMat(df_train.iloc[select_idx], vocabList)
 train_y = np.mat(df_train.iloc[select_idx]['label'].tolist()).reshape((-1, 1))
 
+##构建测试集矩阵
 test_x = makeDataMat(df_train.iloc[test_select_idx], vocabList)
 test_y = np.mat(df_train.iloc[test_select_idx]['label'].tolist()).reshape((-1, 1))
 
@@ -152,6 +156,7 @@ train_x.shape, train_y.shape
 # In[13]:
 
 
+#模型训练
 model = GaussianNB()
 model.fit(train_x, train_y)
 
@@ -159,6 +164,7 @@ model.fit(train_x, train_y)
 # In[14]:
 
 
+#二分类参数
 model.class_prior_
 
 
@@ -183,6 +189,7 @@ model.predict(np.array(word2Vect('其实姐只是一个你永远无法超越的�
 # In[17]:
 
 
+#测试数据的label种数
 set(df_train.iloc[select_idx]['label'].tolist())
 
 
@@ -191,6 +198,7 @@ set(df_train.iloc[select_idx]['label'].tolist())
 
 cnt_2 = sum(df_train.iloc[select_idx]['label'].tolist())/2
 cnt_1 = len(df_train.iloc[select_idx]['label'].tolist()) - cnt_2
+#label 0 的个数，和label 2 的个数
 cnt_1, cnt_2
 
 
@@ -203,11 +211,31 @@ model.theta_.shape
 # In[19]:
 
 
+#训练集准确率
 model.score(train_x, train_y)
 
 
 # In[21]:
 
 
+#测试集的准确率
 model.score(test_x, test_y)
+
+
+# In[38]:
+
+
+from sklearn.externals import joblib
+
+#持久化模型
+joblib.dump(model, 'gaussianNB.txt')
+
+
+# In[39]:
+
+
+#测试持久化模型
+model_2 = joblib.load('gaussianNB.txt')
+
+model_2.score(test_x, test_y)
 
