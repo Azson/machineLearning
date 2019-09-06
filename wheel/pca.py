@@ -50,9 +50,11 @@ class PCA(object):
         X -= x_mean_
 
         x_cov = np.cov(X, rowvar=0)
+        # x_cov = np.dot(np.transpose(X), X)
 
         # 对比array和mat的乘法
         eig_vals, eig_vects = np.linalg.eig(np.mat(x_cov))
+        eig_vals = np.abs(eig_vals)
 
         eig_vals_idx = np.argsort(eig_vals)
         eig_vals_idx = eig_vals_idx[:-(n_components + 1):-1]
