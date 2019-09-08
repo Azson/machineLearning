@@ -111,6 +111,41 @@ def test_nn():
     print('error (numbers, rate) : ({0}, {1})'.format(err, err / test_size))
 
 
+from sklearn.neighbors import KNeighborsClassifier
+
+
+def cal_accuration(target, pred):
+    err = 0
+    sz = len(target)
+
+    for idx in range(sz):
+        if target[idx] != pred[idx]:
+            err += 1
+
+    return err, err / sz
+
+
+def data_to_arr():
+    arr = []
+
+    for i in range(train_size + test_size):
+        inputs = np.array(mnist_x[i], dtype=np.float) / 255 * 0.99 + 0.01
+        arr.append(inputs)
+
+    return np.array(arr)
+
+
+def cmp_skl_knn(train_X, train_y, test_X, test_y):
+    model = KNeighborsClassifier(n_neighbors=3)
+    model.fit(train_X, train_y)
+
+    pred_y = model.predict(test_X)
+
+    err, err_rate = cal_accuration(test_y, pred_y)
+
+    print("error {0}, error rate {1}".format(err, err_rate))
+
+
 if __name__ == '__main__':
     INPUT_NODES = 3
     HIDDEN_NODES = 3
@@ -136,4 +171,16 @@ if __name__ == '__main__':
     nn.train(test_x, test_y)
 
     test_nn()
+
+    #cmp sklearn
+    # prepare data
+    mnist_x, mnist_y = get_mnist_data()
+
+    train_size = 900
+    test_size = 100
+
+    data = data_to_arr()
+
+    cmp_skl_knn(data[:train_size, :], mnist_y[:train_size], data[-test_size - 1:, :], mnist_y[-test_size - 1:])
+
 
