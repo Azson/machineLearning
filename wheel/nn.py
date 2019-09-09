@@ -170,7 +170,7 @@ class torchNN(object):
         self.w1 = torch.randn(self.D_in, self.H, device=device, dtype=torch.float64, requires_grad=True)
         self.w2 = torch.randn(self.H, self.D_out, device=device, dtype=torch.float64, requires_grad=True)
 
-        self.activation_fuc = torch.softmax  # torch.sigmoid
+        self.activation_fuc = torch.sigmoid#torch.softmax
 
         self.loss_func = lambda x, y: (x - y).pow(2).sum().mean()
 
@@ -189,7 +189,10 @@ class torchNN(object):
                 # Tensors, but we do not need to keep references to intermediate values since
                 # we are not implementing the backward pass by hand.
                 y_pred = self.activation_fuc(self.activation_fuc(x[pre:bt * self.BATCH, :] \
-                                                                 .mm(self.w1).clamp(min=0), dim=1).mm(self.w2), dim=1)
+                                                                 .mm(self.w1).clamp(min=0)).mm(self.w2))
+                #softmax
+                #y_pred = self.activation_fuc(self.activation_fuc(x[pre:bt * self.BATCH, :] \
+                #                                                 .mm(self.w1).clamp(min=0), dim=1).mm(self.w2), dim=1)
 
                 # Compute and print loss using operations on Tensors.
                 # Now loss is a Tensor of shape (1,)
@@ -239,8 +242,8 @@ class torchNN(object):
 
     def cal_score(self, targets, pred):
 
-        print('targets:\n{0}'.format(targets))
-        print('pred:\n{0}'.format(pred))
+        #print('targets:\n{0}'.format(targets))
+        #print('pred:\n{0}'.format(pred))
 
         return cal_accuration(targets, pred)
 
@@ -288,10 +291,11 @@ if __name__ == '__main__':
     cmp_skl_knn(data_x[:train_size, :], mnist_y[:train_size], data_x[-test_size - 1:, :], mnist_y[-test_size - 1:])
 
     #cmp torch
-    t_nn = torchNN(INPUT_NODES, HIDDEN_NODES, OUTPUT_NODES, 0.01)
+    t_nn = torchNN(INPUT_NODES, HIDDEN_NODES, OUTPUT_NODES, 0.01, 40)
 
-    t_nn.train(data_x[:train_size, :], data_y[:train_size])
-
-    print(t_nn.cal_score(data_y[train_size:], t_nn.query_class(data_x[train_size:, :])))
-
+    t_nn.train(data_x[:train_size, :], data_y[:train_size], 1000)
+    print("test")
+    print(t_nn.cal_score(data_y[train_size:].argmax(1), t_nn.query_class(data_x[train_size:, :])))
+    print("train")
+    print(t_nn.cal_score(data_y[:train_size].argmax(1), t_nn.query_class(data_x[:train_size, :])))
 
