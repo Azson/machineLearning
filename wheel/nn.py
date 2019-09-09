@@ -111,6 +111,7 @@ def test_nn():
     print('error (numbers, rate) : ({0}, {1})'.format(err, err / test_size))
 
 
+#cmp sklearn knn
 from sklearn.neighbors import KNeighborsClassifier
 
 
@@ -126,13 +127,18 @@ def cal_accuration(target, pred):
 
 
 def data_to_arr():
-    arr = []
-
+    ip_arr = []
+    out_arr = []
     for i in range(train_size + test_size):
-        inputs = np.array(mnist_x[i], dtype=np.float) / 255 * 0.99 + 0.01
-        arr.append(inputs)
+        inputs = np.array(mnist_x[i], dtype=np.double) / 255 * 0.99 + 0.01
 
-    return np.array(arr)
+        label = np.zeros(OUTPUT_NODES, dtype=np.double) + 0.01
+        label[int(mnist_y[i])] = 0.99
+
+        ip_arr.append(inputs)
+        out_arr.append(label)
+
+    return np.array(ip_arr), np.array(out_arr)
 
 
 def cmp_skl_knn(train_X, train_y, test_X, test_y):
@@ -145,6 +151,98 @@ def cmp_skl_knn(train_X, train_y, test_X, test_y):
 
     print("error {0}, error rate {1}".format(err, err_rate))
 
+
+##cmp pytorch
+import torch
+
+
+class torchNN(object):
+
+    def __init__(self, input_nodes, hidden_nodes, output_nodes, learning_rate=0.5, batch=64):
+
+        self.BATCH, self.D_in, self.H, self.D_out = batch, input_nodes, hidden_nodes, output_nodes
+
+        self.lr = learning_rate
+
+        dtype = torch.float
+        device = torch.device("cpu")
+
+        self.w1 = torch.randn(self.D_in, self.H, device=device, dtype=torch.float64, requires_grad=True)
+        self.w2 = torch.randn(self.H, self.D_out, device=device, dtype=torch.float64, requires_grad=True)
+
+        self.activation_fuc = torch.softmax  # torch.sigmoid
+
+        self.loss_func = lambda x, y: (x - y).pow(2).sum().mean()
+
+    def train(self, data_x, data_y, EPOCHS=500):
+
+        # x = torch.from_numpy(data_x[:train_size, :])
+        # y = torch.from_numpy(data_y[:train_size, :])
+        x = torch.from_numpy(data_x)
+        y = torch.from_numpy(data_y)
+
+        for t in range(EPOCHS):
+            pre = 0
+            for bt in range(int(x.shape[0] / self.BATCH)):
+                # Forward pass: compute predicted y using operations on Tensors; these
+                # are exactly the same operations we used to compute the forward pass using
+                # Tensors, but we do not need to keep references to intermediate values since
+                # we are not implementing the backward pass by hand.
+                y_pred = self.activation_fuc(self.activation_fuc(x[pre:bt * self.BATCH, :] \
+                                                                 .mm(self.w1).clamp(min=0), dim=1).mm(self.w2), dim=1)
+
+                # Compute and print loss using operations on Tensors.
+                # Now loss is a Tensor of shape (1,)
+                # loss.item() gets the scalar value held in the loss.
+                loss = self.loss_func(y_pred, y[pre:bt * self.BATCH, :])
+
+                # Use autograd to compute the backward pass. This call will compute the
+                # gradient of loss with respect to all Tensors with requires_grad=True.
+                # After this call w1.grad and w2.grad will be Tensors holding the gradient
+                # of the loss with respect to w1 and w2 respectively.
+                loss.backward()
+
+                # Manually update weights using gradient descent. Wrap in torch.no_grad()
+                # because weights have requires_grad=True, but we don't need to track this
+                # in autograd.
+                # An alternative way is to operate on weight.data and weight.grad.data.
+                # Recall that tensor.data gives a tensor that shares the storage with
+                # tensor, but doesn't track history.
+                # You can also use torch.optim.SGD to achieve this.
+                with torch.no_grad():
+                    self.w1 -= self.lr * self.w1.grad
+                    self.w2 -= self.lr * self.w2.grad
+
+                    # Manually zero the gradients after updating weights
+                    self.w1.grad.zero_()
+                    self.w2.grad.zero_()
+
+                pre = bt * self.BATCH
+            if t % 100 == 99:
+                print(t, loss.item())
+
+        pass
+
+    def query_class(self, data_x):
+
+        y_pred = self.query_prob(data_x)
+
+        return y_pred.argmax(dim=1)
+
+    def query_prob(self, data_x):
+        x = torch.from_numpy(data_x)
+        y = torch.from_numpy(data_y)
+
+        y_pred = x.mm(self.w1).clamp(min=0).mm(self.w2)
+
+        return y_pred
+
+    def cal_score(self, targets, pred):
+
+        print('targets:\n{0}'.format(targets))
+        print('pred:\n{0}'.format(pred))
+
+        return cal_accuration(targets, pred)
 
 if __name__ == '__main__':
     INPUT_NODES = 3
@@ -172,6 +270,12 @@ if __name__ == '__main__':
 
     test_nn()
 
+
+    INPUT_NODES = 28*28
+    HIDDEN_NODES = 100
+    OUTPUT_NODES = 10
+    learning_rate = 0.5
+
     #cmp sklearn
     # prepare data
     mnist_x, mnist_y = get_mnist_data()
@@ -179,8 +283,15 @@ if __name__ == '__main__':
     train_size = 900
     test_size = 100
 
-    data = data_to_arr()
+    data_x, data_y = data_to_arr()
 
-    cmp_skl_knn(data[:train_size, :], mnist_y[:train_size], data[-test_size - 1:, :], mnist_y[-test_size - 1:])
+    cmp_skl_knn(data_x[:train_size, :], mnist_y[:train_size], data_x[-test_size - 1:, :], mnist_y[-test_size - 1:])
+
+    #cmp torch
+    t_nn = torchNN(INPUT_NODES, HIDDEN_NODES, OUTPUT_NODES, 0.01)
+
+    t_nn.train(data_x[:train_size, :], data_y[:train_size])
+
+    print(t_nn.cal_score(data_y[train_size:], t_nn.query_class(data_x[train_size:, :])))
 
 
