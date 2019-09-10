@@ -13,17 +13,16 @@ class Solution(object):
         if not head or not head.next:
             return head
 
-        #die dai
+        # die dai
         pre = None
         nxt = head.next
         while nxt:
-
             nxt = head.next
             head.next = pre
-            pre = head
 
+            pre = head
             head = nxt
-        return head
+        return pre
 
         '''
         #recursion
