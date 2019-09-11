@@ -14,7 +14,7 @@ class Solution(object):
         """
         if not root:
             return 0
-        
+
         def recur_cnt(now, res):
             if not now:
                 return 0
