@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <title>game</title>
+        {% if auto_refresh %}
+            <p>auto refreshing~</p>
+            <meta http-equiv="Refresh" content="2">
+
+            <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        {% else %}
+            <p>forbid auto refresh</p>
+        {% endif %}
+
+    </head>
+
+    <body>
+
+        <p>Game Map</p>
+
+        <br/>
+        <p>成功次数：{{ success_num }}</p>
+        <p>失败次数：{{ fail_num }}</p>
+        <p>成功比 : {{ s_f_rate }}%</p>
+        <hr/>
+
+
+        {% for row in graph %}
+            {% for col in row %}
+
+                {{ col }}
+            {% endfor %}
+            <br/> 
+        {% endfor %}
+    </body>
+</html>

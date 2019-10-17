@@ -123,6 +123,7 @@ class DeepQNetwork:
 
     def choose_action(self, observation):
         # to have batch dimension when feed into tf placeholder
+
         observation = observation[np.newaxis, :]
 
         if np.random.uniform() < self.epsilon:
@@ -200,3 +201,24 @@ class DeepQNetwork:
         plt.ylabel('Cost')
         plt.xlabel('training steps')
         plt.show()
+
+
+if __name__ == "__main__":
+    
+    RL = DeepQNetwork(4, 10,#env.n_actions, env.n_features,
+                      learning_rate=0.01,
+                      reward_decay=0.9,
+                      e_greedy=0.9,
+                      replace_target_iter=200,
+                      memory_size=2000,
+                      # output_graph=True
+                    )
+
+    with tf.variable_scope('junjay'):
+        jj_c = tf.constant(1.)
+
+    
+    with tf.Session() as sess:
+        sess.run(tf.global_variables_initializer())
+
+        print(sess.run(jj_c))
