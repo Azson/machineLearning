@@ -15,12 +15,13 @@ G = [
 
 
 AUTO_REFRESH = True
-REFRESH_TIME= 0.01
+REFRESH_TIME= 0.001
 NOW_POS = [0, 0]
 N, M = 3,4
 
 SUCCESS_NUM = 0
 FAIL_NUM = 0
+STEP_NUM = 0
 DIR_DCIT = {
     "up" : (0, -1),
     "down" : (0, 1),
@@ -41,7 +42,9 @@ def index(request):
         "success_num" : SUCCESS_NUM,
         "fail_num"  : FAIL_NUM,
         "s_f_rate" : SUCCESS_NUM / (FAIL_NUM + 1),
-
+        "step_num" : STEP_NUM,
+        "effect_succ" : SUCCESS_NUM / (STEP_NUM + 1),
+        
     }
     
     return render(request, 'index.html', data)
@@ -49,7 +52,7 @@ def index(request):
 
 
 def game_tools(request):
-    global NOW_POS, SUCCESS_NUM, FAIL_NUM
+    global NOW_POS, SUCCESS_NUM, FAIL_NUM, STEP_NUM
 
     if(request.method == "GET"):
         result = {
@@ -70,6 +73,7 @@ def game_tools(request):
 
         elif(op ==  "set_position"):
             dir = request.POST["dir"]
+            STEP_NUM += 1
 
             if dir not in DIR_DCIT.keys():
                 result['status'] = "FAIL"
