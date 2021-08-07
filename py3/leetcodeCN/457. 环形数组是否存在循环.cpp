@@ -37,6 +37,43 @@ public:
     }
 };
 
+class Solution {
+public:
+    int n;
+
+    bool circularArrayLoop(vector<int>& nums) {
+        // vector<vector<int> > pos (5005, vector<int> (3));
+        
+        n  = nums.size();
+        auto next = [&](int u) {
+            return ((u + nums[u]) % n + n) % n;
+        };
+        for (int i = 0;i < n;i++) {
+            if (!nums[i]) {
+                continue;
+            }
+            int slow = i, fast = next(i);
+            while (nums[slow] * nums[fast] > 0 && nums[slow] * nums[next(fast)] > 0) {
+                if (slow == fast) {
+                    if (slow != next(slow)) {
+                        return true;
+                    }
+                    break;
+                }
+                slow = next(slow);
+                fast = next(next(fast));
+            }
+            slow = i;
+            while (nums[slow] * nums[next(slow)] > 0) {
+                fast = slow;
+                slow = next(slow);
+                nums[fast] = 0;
+            }
+        }
+        return false;
+    }
+};
+
 
 int main()
 {
