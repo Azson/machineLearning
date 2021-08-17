@@ -20,10 +20,17 @@ public:
                     return false;
                 }
             }
+            if (ch != pre) {
+                cnt_l = 0;
+                pre = ch;
+            }
             if (ch == 'L') {
-                cnt_l ++;
+                if (++cnt_l >= 3) {
+                    return false;
+                }
             }
         }
+        return true;
     }
 };
 
