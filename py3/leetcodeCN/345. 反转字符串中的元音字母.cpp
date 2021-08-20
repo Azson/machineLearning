@@ -31,8 +31,19 @@ public:
         int l = 0, r = n - 1;
         
         while (l < r) {
-
+            while (l < r && !is_alpha(s[l])) {
+                l ++;
+            }
+            while (r > l && !is_alpha(s[r])) {
+                r --;
+            }
+            if (l < r) {
+                swap(s[l], s[r]);
+                l ++;
+                r --;
+            }
         }
+        return s;
     }
 };
 
